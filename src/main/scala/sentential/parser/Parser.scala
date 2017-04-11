@@ -20,7 +20,7 @@ object Parser {
   def impl = string(Tokens.impl)
 
   private val lit0: Parser[Expression] =
-    letter.filter(_.isLower) -| Lit.apply
+    letter.filter(_.isLower) -| Var.apply
 
   def lit: Parser[Expression] =
     lit0 | (neg ~> lit0) -| Neg
