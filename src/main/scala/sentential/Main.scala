@@ -2,15 +2,17 @@ package sentential
 
 import sentential.parser.Parser
 import atto._
-import Atto._
+import atto.Atto._
 import compat.cats._
 import sentential.ast.Expression
 import cats.syntax.show._
+import scala.scalajs.js.JSApp
 
-object Main extends App {
-  val exp = Parser.expression.parse("""a => b""").either
-
-  exp.fold(exitWithError, e => evalExpression(e))
+object Main extends JSApp {
+  def main() = {
+    val exp = Parser.expression.parse("""a => b""").either
+    exp.fold(exitWithError, e => evalExpression(e))
+  }
 
   private def exitWithError(msg: String): Unit = {
     System.err.println(s"Failed parsing expression: $msg")
