@@ -4,7 +4,7 @@ package sentential.parser
 import atto._
 import Atto._
 import sentential.ast.Expression
-import sentential.ast.Expression._
+import Expression._
 
 object Parser {
   object Tokens {
@@ -20,7 +20,7 @@ object Parser {
   def impl = string(Tokens.impl)
 
   private val lit0: Parser[Expression] =
-    letter.filter(_.isLower).map(Lit(_, true))
+    letter.filter(_.isLower) -| Lit.apply
 
   def lit: Parser[Expression] =
     lit0 | (neg ~> lit0) -| Neg

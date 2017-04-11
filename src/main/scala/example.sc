@@ -8,4 +8,4 @@ import cats.syntax.either._
 //val y = Parser.simpleExp.parse("¬a\\/b")
 
 val x = Parser.expression.parse("""( a \/ b) /\ ( x => y)""")
-x.option.get.value
+x.option.get.eval
