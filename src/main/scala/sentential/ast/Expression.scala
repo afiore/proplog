@@ -1,9 +1,8 @@
 package sentential.ast
 
 import cats.Show
-import cats.data.Kleisli
+import cats.data.{Kleisli, NonEmptyList}
 import cats.instances.either._
-import cats.syntax.show._
 
 import scala.annotation.tailrec
 
@@ -24,30 +23,37 @@ sealed trait BinaryExpression extends Expression {
 
 object Expression {
   type Bindings = Map[Char, Boolean]
-  type Result[A] = Either[BindingError, A]
+  type Result[A] = Either[Error, A]
   type BoundBoolean = Kleisli[Result, Bindings, Boolean]
 
-  def booleanCombinations(n: Int): List[List[Boolean]] = {
-    val trueFalse = List(true, false)
-
-    @tailrec
-    def go(i: Int, acc: List[List[Boolean]]): List[List[Boolean]] = {
-      if (i == 0)
-        acc
-      else
-        go(i -1, acc.flatMap(xs => trueFalse.map(y => xs :+ y )))
+  implicit class ExpressionOps(exp: Expression) {
+    def truthTable: NonEmptyList[Bindings] = {
+      val names = varNames
+      booleanCombinations(names.size).map { values =>
+        names.zip(values).toMap
+      }
     }
 
-    go(n - 1, trueFalse.map(List(_)))
-  }
-
-  def varNames(exp: Expression): Set[Char] = {
-    def go(e: Expression, acc: Set[Char]): Set[Char] = e match {
-      case Var(c, _) => acc + c
-      case Neg(ee) => go(ee, acc)
-      case ee: BinaryExpression => go(ee.left, acc) ++ go(ee.right, acc)
+    def varNames: Set[Char] = {
+      def go(e: Expression, acc: Set[Char]): Set[Char] = e match {
+        case Var(c, _) => acc + c
+        case Neg(ee) => go(ee, acc)
+        case ee: BinaryExpression => go(ee.left, acc) ++ go(ee.right, acc)
+      }
+      go(exp, Set.empty[Char])
     }
-    go(exp, Set.empty[Char])
+
+    private def booleanCombinations(n: Int): NonEmptyList[List[Boolean]] = {
+      val trueFalse = List(true, false)
+      @tailrec
+      def go(i: Int, acc: List[List[Boolean]]): List[List[Boolean]] = {
+        if (i == 0)
+          acc
+        else
+          go(i -1, acc.flatMap(xs => trueFalse.map(y => xs :+ y )))
+      }
+      NonEmptyList.fromListUnsafe(go(n - 1, trueFalse.map(List(_))))
+    }
   }
 
   private def prettyPrint(exp: Expression): String = exp match {
@@ -68,7 +74,14 @@ object Expression {
   implicit def expShow: Show[Expression] =
     Show.show(prettyPrint _ andThen removeOuterBraces)
 
-  final case class BindingError(label: Char)
+  sealed trait Error {
+    def msg: String
+  }
+
+  final case class BindingError(label: Char) extends Error {
+    override def msg = s"Unbound variable: $label"
+  }
+  final case class ParserError(msg: String) extends Error
 
   final case class Var(label: Char, eval: BoundBoolean) extends Expression
   object Var {
@@ -87,7 +100,7 @@ object Expression {
   }
 
   final case class Disj(left: Expression, right: Expression) extends BinaryExpression {
-     override def eval = leftRight(_ || _)
+    override def eval = leftRight(_ || _)
     override val symbol = "∧"
   }
 

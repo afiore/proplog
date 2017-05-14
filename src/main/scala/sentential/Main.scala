@@ -1,35 +1,38 @@
 package sentential
 
 import sentential.parser.Parser
-import atto._
-import atto.Atto._
-import compat.cats._
-import sentential.ast.Expression
-import cats.syntax.show._
+import sentential.ui.AsHtml._
 import scala.scalajs.js.JSApp
+import scala.scalajs.js.annotation.JSExport
+import org.scalajs.dom
+import sentential.ui.{InputExpression, TruthTable}
+
+import scalatags.JsDom.all._
+import dom.document
 
 object Main extends JSApp {
-  def main() = {
-    val exp = Parser.expression.parse("""a => b""").either
-    exp.fold(exitWithError, e => evalExpression(e))
-  }
+  @JSExport
+  def main(): Unit = {
+    val input = InputExpression("").render
+    val output = div(id := "output").render
 
-  private def exitWithError(msg: String): Unit = {
-    System.err.println(s"Failed parsing expression: $msg")
-    System.exit(1)
-  }
+    input.onkeyup = (_: dom.Event) => {
+      val expResult = Parser.parseExpression(input.value)
+      val truthTableResult = expResult.flatMap(e => TruthTable(e).map(e -> _))
 
-  private def evalExpression(e: Expression): Unit = {
-    println(s"expression: ${e.show}")
+      val newNode = truthTableResult.fold[dom.Element]({ err =>
+        p(cls := "error", err.msg).render
+      },{ case (e, truthTable) => truthTable.render })
 
-    val varNames = Expression.varNames(e)
-
-    Expression.booleanCombinations(varNames.size).foreach { values =>
-      val bindings = varNames.zip(values).toMap
-      println(bindings)
-      println(e.eval.run(bindings))
-      println("================================================================")
+      Option(output).foreach { o =>
+        if (o.hasChildNodes()) {
+          o.removeChild(o.firstElementChild)
+        }
+        o.appendChild(newNode)
+      }
     }
-  }
 
+    document.body.appendChild(input)
+    document.body.appendChild(output)
+  }
 }
