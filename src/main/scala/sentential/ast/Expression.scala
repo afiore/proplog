@@ -3,9 +3,15 @@ package sentential.ast
 import cats.Show
 import cats.data.{Kleisli, NonEmptyList}
 import cats.instances.either._
-
 import scala.annotation.tailrec
 
+/**
+ * An abstract syntax tree for propositional logic.
+ *
+ * Supports conjunction, disjunction, implication and negation. Boolean literals are not
+ * encoded directly as part of the tree, but are bound to variables at evaluation time
+ * (see Expression.Bindings and Expression.BoundBoolean)
+ */
 sealed trait Expression {
   def eval: Expression.BoundBoolean
 }
@@ -15,18 +21,87 @@ sealed trait BinaryExpression extends Expression {
   def right: Expression
   def symbol: String
 
-  def leftRight(f: (Boolean, Boolean) => Boolean): Expression.BoundBoolean = for {
+  def evalLR(f: (Boolean, Boolean) => Boolean): Expression.BoundBoolean = for {
     l <- left.eval
     r <- right.eval
   } yield f(l,r)
 }
 
 object Expression {
+  sealed trait Error {
+    def msg: String
+  }
+  final case class BindingError(label: Char) extends Error {
+    override def msg = s"Unbound variable: $label"
+  }
+  final case class ParserError(msg: String) extends Error
+
   type Bindings = Map[Char, Boolean]
   type Result[A] = Either[Error, A]
-  type BoundBoolean = Kleisli[Result, Bindings, Boolean]
+  type BoundBoolean = Kleisli[Result, Bindings, Boolean] // Bindings => Result[Boolean]
+
+  final case class Var(label: Char, eval: BoundBoolean) extends Expression
+  object Var {
+    def apply(c: Char): Expression =
+      Var(c, Kleisli[Result, Bindings, Boolean](m =>
+        m.get(c).toRight(BindingError(c))))
+  }
+
+  final case class Neg(exp: Expression) extends Expression {
+    override def eval = exp.eval.map(!_)
+  }
+
+  final case class Conj(left: Expression, right: Expression) extends BinaryExpression {
+    override def eval = evalLR(_ && _)
+    override val symbol = "∨"
+  }
+
+  final case class Disj(left: Expression, right: Expression) extends BinaryExpression {
+    override def eval = evalLR(_ || _)
+    override val symbol = "∧"
+  }
+
+  final case class Impl(left: Expression, right: Expression) extends BinaryExpression {
+    override def eval = evalLR { (l, r) => if (l && !r) false else true }
+    override def symbol = "⇒"
+  }
+
+  final case class Node(expression: Expression, depth: Int)
 
   implicit class ExpressionOps(exp: Expression) {
+    /* Returns the expression's sub-trees sorted in descending order (deepest first)
+     *
+     * Given a sample tree a:
+     *
+     *              a
+     *            /   \
+     *           b    c
+     *              /   \
+     *            d      e
+     *          / \     / \
+     *        d1  d2   f   g
+     *
+     *
+     *  c.subTrees
+     *  => Seq(d1, d2, f, g, d, e)
+     *
+     *  a.binaryExpressions
+     *  => Seq(d, e, c, a)
+     *
+     * */
+    def subTrees: Seq[Node] = {
+      def go(e: Expression, acc: Seq[Expression.Node], depth: Int): Seq[Expression.Node] = e match {
+        case bi: BinaryExpression =>
+          go(bi.left, acc, depth + 1) ++ (Node(e, depth) +: go(bi.right, acc, depth + 1))
+        case _ => Node(e, depth) +: acc
+      }
+      go(exp, Nil, 0)
+        .sortBy(_.depth)(Ordering[Int].reverse)
+    }
+
+    def binaryExpressions: Seq[Expression] =
+      subTrees.collect { case n@Node(e: BinaryExpression, _) => n.expression }
+
     def truthTable: NonEmptyList[Bindings] = {
       val names = varNames
       booleanCombinations(names.size).map { values =>
@@ -73,40 +148,5 @@ object Expression {
 
   implicit def expShow: Show[Expression] =
     Show.show(prettyPrint _ andThen removeOuterBraces)
-
-  sealed trait Error {
-    def msg: String
-  }
-
-  final case class BindingError(label: Char) extends Error {
-    override def msg = s"Unbound variable: $label"
-  }
-  final case class ParserError(msg: String) extends Error
-
-  final case class Var(label: Char, eval: BoundBoolean) extends Expression
-  object Var {
-    def apply(c: Char): Expression =
-      Var(c, Kleisli[Result, Bindings, Boolean](m =>
-        m.get(c).toRight(BindingError(c))))
-  }
-
-  final case class Neg(exp: Expression) extends Expression {
-    override def eval = exp.eval.map(!_)
-  }
-
-  final case class Conj(left: Expression, right: Expression) extends BinaryExpression {
-    override def eval = leftRight(_ && _)
-    override val symbol = "∨"
-  }
-
-  final case class Disj(left: Expression, right: Expression) extends BinaryExpression {
-    override def eval = leftRight(_ || _)
-    override val symbol = "∧"
-  }
-
-  final case class Impl(left: Expression, right: Expression) extends BinaryExpression {
-    override def eval = leftRight { (l, r) => if (l && !r) false else true }
-    override def symbol = "⇒"
-  }
 }
 
