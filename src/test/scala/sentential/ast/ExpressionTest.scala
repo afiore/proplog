@@ -24,8 +24,7 @@ class ExpressionTest extends FreeSpec {
   "binaryExpressions" - {
     "returns all the non-leaf subtrees in the expected order" in {
       val nonLeafs = expression.binaryExpressions.map(_.show)
-      assert(nonLeafs === Seq("""x ∧ ¬y""", """(n ∨ (x ∧ ¬y))""", """(m ∧ (n ∨ (x ∧ ¬y)))"""))
+      assert(nonLeafs === Seq("""x ∨ ¬y""", """(n ∧ (x ∨ ¬y))""", """(m ∨ (n ∧ (x ∨ ¬y)))"""))
     }
   }
-
 }

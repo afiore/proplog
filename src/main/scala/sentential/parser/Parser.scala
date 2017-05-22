@@ -15,6 +15,7 @@ object Parser {
     val conj = """/\"""
     val disj = """\/"""
     val impl = "=>"
+    val iff = "<=>"
     val neg = '¬'
   }
 
@@ -22,6 +23,7 @@ object Parser {
   private def disj = string(Tokens.disj)
   private def conj = string(Tokens.conj)
   private def impl = string(Tokens.impl)
+  private def iff = string(Tokens.iff)
 
   private val lit0: Parser[Expression] =
     letter.filter(_.isLower) -| Var.apply
@@ -32,7 +34,7 @@ object Parser {
   private def expression: Parser[Expression] = for {
     left <- lit | expInBraces
     _ <- skipWhitespace
-    op <- conj | disj | impl
+    op <- conj | disj | impl | iff
     _ <- skipWhitespace
     right <- lit | expInBraces
   } yield {
@@ -40,6 +42,7 @@ object Parser {
       case Tokens.conj => Conj(left, right)
       case Tokens.disj => Disj(left, right)
       case Tokens.impl => Impl(left, right)
+      case Tokens.iff  => Iff(left, right)
     }
   }
 

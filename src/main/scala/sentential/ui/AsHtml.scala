@@ -15,6 +15,7 @@ object AsHtml {
 
   implicit class HtmlTagSyntax[A, Out <: dom.Element](a: A)(implicit ev: AsHtml[A, Out]) {
     def asHtml: TypedTag[Out] = ev.asHtml(a)
+
     def render: Out = asHtml.render
   }
 
@@ -22,7 +23,7 @@ object AsHtml {
     input(id := "expression", value := ie.expAsString)
   }
 
-  implicit val renderVar = AsHtml.render[TruthTable.Variable, html.TableCell] { v =>
+  implicit val renderVar = AsHtml.render[TruthTable.Term, html.TableCell] { v =>
     td(if(v.toBoolean) "T" else "F")
   }
 

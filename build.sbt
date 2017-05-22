@@ -9,7 +9,6 @@ libraryDependencies ++= Seq(
   "org.tpolecat" %%% "atto-compat-cats" % "0.5.2",
   "com.lihaoyi" %%% "scalatags" % "0.6.5",
   "org.scalatest" %%% "scalatest" % "3.0.1" % "test"
-
 )
 
 enablePlugins(ScalaJSPlugin)

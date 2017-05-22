@@ -53,18 +53,24 @@ object Expression {
 
   final case class Conj(left: Expression, right: Expression) extends BinaryExpression {
     override def eval = evalLR(_ && _)
-    override val symbol = "∨"
+    override val symbol = "∧"
   }
 
   final case class Disj(left: Expression, right: Expression) extends BinaryExpression {
     override def eval = evalLR(_ || _)
-    override val symbol = "∧"
+    override val symbol = "∨"
   }
 
   final case class Impl(left: Expression, right: Expression) extends BinaryExpression {
     override def eval = evalLR { (l, r) => if (l && !r) false else true }
     override def symbol = "⇒"
   }
+
+  final case class Iff(left: Expression, right: Expression) extends BinaryExpression {
+    override def eval = evalLR { (l, r) => l & r || !l && !r}
+    override def symbol = "⇔"
+  }
+
 
   final case class Node(expression: Expression, depth: Int)
 
@@ -98,6 +104,8 @@ object Expression {
       go(exp, Nil, 0)
         .sortBy(_.depth)(Ordering[Int].reverse)
     }
+
+    def childExpressions: Seq[Expression] = subTrees.map(_.expression)
 
     def binaryExpressions: Seq[Expression] =
       subTrees.collect { case n@Node(e: BinaryExpression, _) => n.expression }

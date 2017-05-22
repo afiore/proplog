@@ -13,12 +13,13 @@ import dom.document
 object Main extends JSApp {
   @JSExport
   def main(): Unit = {
-    val input = InputExpression("").render
+    val expInput = InputExpression("").render
     val output = div(id := "output").render
+    val includeSubtreeCheckbox = input(tpe := "checkbox").render
 
-    input.onkeyup = (_: dom.Event) => {
-      val expResult = Parser.parseExpression(input.value)
-      val truthTableResult = expResult.flatMap(e => TruthTable(e).map(e -> _))
+    def renderTable(includeSubtree: Boolean): Unit = {
+      val expResult = Parser.parseExpression(expInput.value)
+      val truthTableResult = expResult.flatMap(e => TruthTable(e, includeSubtree).map(e -> _))
 
       val newNode = truthTableResult.fold[dom.Element]({ err =>
         p(cls := "error", err.msg).render
@@ -32,7 +33,12 @@ object Main extends JSApp {
       }
     }
 
-    document.body.appendChild(input)
-    document.body.appendChild(output)
+    includeSubtreeCheckbox.onchange = (e: dom.Event) =>
+      renderTable(includeSubtreeCheckbox.checked)
+
+    expInput.onkeyup = (_: dom.Event) =>
+      renderTable(includeSubtreeCheckbox.checked)
+
+    Seq(expInput, includeSubtreeCheckbox, output).foreach(document.body.appendChild(_))
   }
 }
