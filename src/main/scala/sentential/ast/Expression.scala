@@ -8,7 +8,7 @@ import scala.annotation.tailrec
 /**
  * An abstract syntax tree for propositional logic.
  *
- * Supports conjunction, disjunction, implication and negation. Boolean literals are not
+ * Supports conjunction, disjunction, negation, implication and equivalence. Boolean literals are not
  * encoded directly as part of the tree, but are bound to variables at evaluation time
  * (see Expression.Bindings and Expression.BoundBoolean)
  */
@@ -21,10 +21,10 @@ sealed trait BinaryExpression extends Expression {
   def right: Expression
   def symbol: String
 
-  def evalLR(f: (Boolean, Boolean) => Boolean): Expression.BoundBoolean = for {
+  def evalLR(op: (Boolean, Boolean) => Boolean): Expression.BoundBoolean = for {
     l <- left.eval
     r <- right.eval
-  } yield f(l,r)
+  } yield op(l,r)
 }
 
 object Expression {
@@ -38,7 +38,9 @@ object Expression {
 
   type Bindings = Map[Char, Boolean]
   type Result[A] = Either[Error, A]
-  type BoundBoolean = Kleisli[Result, Bindings, Boolean] // Bindings => Result[Boolean]
+
+  // Bindings => Result[Boolean]
+  type BoundBoolean = Kleisli[Result, Bindings, Boolean]
 
   final case class Var(label: Char, eval: BoundBoolean) extends Expression
   object Var {
@@ -70,7 +72,6 @@ object Expression {
     override def eval = evalLR { (l, r) => l & r || !l && !r}
     override def symbol = "⇔"
   }
-
 
   final case class Node(expression: Expression, depth: Int)
 

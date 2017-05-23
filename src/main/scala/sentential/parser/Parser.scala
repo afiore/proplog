@@ -8,7 +8,7 @@ import compat.cats._
 import cats.syntax.either._
 
 object Parser {
-  def parseExpression(s: String): Expression.Result[Expression] =
+  def parseExpression(s: String): Result[Expression] =
     expression.parse(s).either.leftMap(Expression.ParserError)
 
   private object Tokens {
@@ -19,11 +19,11 @@ object Parser {
     val neg = '¬'
   }
 
-  private def neg = char(Tokens.neg)
+  private def neg  = char(Tokens.neg)
   private def disj = string(Tokens.disj)
   private def conj = string(Tokens.conj)
   private def impl = string(Tokens.impl)
-  private def iff = string(Tokens.iff)
+  private def iff  = string(Tokens.iff)
 
   private val lit0: Parser[Expression] =
     letter.filter(_.isLower) -| Var.apply

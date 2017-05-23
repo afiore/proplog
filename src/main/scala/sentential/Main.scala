@@ -5,7 +5,7 @@ import sentential.ui.AsHtml._
 import scala.scalajs.js.JSApp
 import scala.scalajs.js.annotation.JSExport
 import org.scalajs.dom
-import sentential.ui.{InputExpression, TruthTable}
+import sentential.ui.{InputExpression, TruthTable, State}
 
 import scalatags.JsDom.all._
 import dom.document
@@ -15,15 +15,20 @@ object Main extends JSApp {
   def main(): Unit = {
     val expInput = InputExpression("").render
     val output = div(id := "output").render
-    val includeSubtreeCheckbox = input(tpe := "checkbox").render
+    val checkbox = input(tpe := "checkbox").render
+    val msg = p("Evaluate intermediate expressions").render
+    val msgDiv = div(cls := "msg").render
 
-    def renderTable(includeSubtree: Boolean): Unit = {
-      val expResult = Parser.parseExpression(expInput.value)
-      val truthTableResult = expResult.flatMap(e => TruthTable(e, includeSubtree).map(e -> _))
+    Seq(checkbox, msg, div(cls := "clear").render)
+      .foreach(msgDiv.appendChild)
+
+    def renderTable(state: ui.State): Unit = {
+      val expResult = Parser.parseExpression(state.rawExpression)
+      val truthTableResult = expResult.flatMap(TruthTable(_, state.expandSubtree))
 
       val newNode = truthTableResult.fold[dom.Element]({ err =>
         p(cls := "error", err.msg).render
-      },{ case (e, truthTable) => truthTable.render })
+      }, _.render)
 
       Option(output).foreach { o =>
         if (o.hasChildNodes()) {
@@ -33,12 +38,16 @@ object Main extends JSApp {
       }
     }
 
-    includeSubtreeCheckbox.onchange = (e: dom.Event) =>
-      renderTable(includeSubtreeCheckbox.checked)
+    def readState: State =
+      State(expInput.value, checkbox.checked)
+
+    checkbox.onchange = (e: dom.Event) =>
+      renderTable(readState)
 
     expInput.onkeyup = (_: dom.Event) =>
-      renderTable(includeSubtreeCheckbox.checked)
+      renderTable(readState)
 
-    Seq(expInput, includeSubtreeCheckbox, output).foreach(document.body.appendChild(_))
+    Seq(expInput, msgDiv, output)
+      .foreach(document.body.appendChild)
   }
 }
