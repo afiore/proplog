@@ -1,13 +1,13 @@
-package sentential.ui
+package proplog.ui
 
 import cats.data.NonEmptyList
-import sentential.ast.Expression
+import proplog.ast.Expression
 import cats.syntax.show._
 import cats.instances.either._
 import cats.instances.list._
 import cats.syntax.traverse._
 import cats.syntax.either._
-import sentential.ast.Expression.BindingError
+import proplog.ast.Expression.BindingError
 
 object TruthTable {
   case class Term(name: String, toBoolean: Boolean)

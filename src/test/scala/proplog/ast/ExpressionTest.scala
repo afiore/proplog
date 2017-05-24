@@ -1,9 +1,9 @@
-package sentential.ast
+package proplog.ast
 
 import org.scalatest.FreeSpec
 import cats.syntax.show._
 import cats.syntax.either._
-import sentential.parser.Parser
+import proplog.parser.Parser
 
 class ExpressionTest extends FreeSpec {
   val expression =

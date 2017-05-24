@@ -1,4 +1,4 @@
-package sentential.ast
+package proplog.ast
 
 import cats.Show
 import cats.data.{Kleisli, NonEmptyList}

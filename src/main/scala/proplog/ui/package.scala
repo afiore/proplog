@@ -1,4 +1,4 @@
-package sentential
+package proplog
 
 package object ui {
   case class State(rawExpression: String,

@@ -1,4 +1,4 @@
-name := "sentential"
+name := "proplog"
 
 version := "1.0"
 

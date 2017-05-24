@@ -1,10 +1,10 @@
-package sentential.ui
+package proplog.ui
 
 import org.scalatest.Matchers
 import org.scalatest.FreeSpec
 
-import sentential.ast.Expression._
-import sentential.ui.TruthTable._
+import proplog.ast.Expression._
+import proplog.ui.TruthTable._
 
 class TruthTableTest extends FreeSpec with Matchers {
   object Example {

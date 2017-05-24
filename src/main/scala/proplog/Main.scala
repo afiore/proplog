@@ -1,11 +1,11 @@
-package sentential
+package proplog
 
-import sentential.parser.Parser
-import sentential.ui.AsHtml._
+import proplog.parser.Parser
+import proplog.ui.AsHtml._
 import scala.scalajs.js.JSApp
 import scala.scalajs.js.annotation.JSExport
 import org.scalajs.dom
-import sentential.ui.{TruthTable, State}
+import proplog.ui.{TruthTable, State}
 
 import scalatags.JsDom.all._
 import dom.document

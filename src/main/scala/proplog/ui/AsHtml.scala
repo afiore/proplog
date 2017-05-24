@@ -1,4 +1,4 @@
-package sentential.ui
+package proplog.ui
 
 import org.scalajs.dom
 import scalatags.JsDom.TypedTag

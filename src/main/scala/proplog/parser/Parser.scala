@@ -1,15 +1,18 @@
-package sentential.parser
+package proplog.parser
 
 import atto._
 import Atto._
-import sentential.ast.Expression
+import proplog.ast.Expression
 import Expression._
 import compat.cats._
 import cats.syntax.either._
 
 object Parser {
   def parseExpression(s: String): Result[Expression] =
-    expression.parse(s).either.leftMap(Expression.ParserError)
+    (expression | expInBraces | lit)
+      .parseOnly(s)
+      .either
+      .leftMap(Expression.ParserError)
 
   private object Tokens {
     val conj = """/\"""
@@ -26,13 +29,13 @@ object Parser {
   private def impl = string(Tokens.impl)
   private def iff  = string(Tokens.iff)
 
-  private val lit0: Parser[Expression] =
+  val lit0: Parser[Expression] =
     letter.filter(_.isLower) -| Var.apply
 
-  private def lit: Parser[Expression] =
+  def lit: Parser[Expression] =
     lit0 | (neg ~> lit0) -| Neg
 
-  private def expression: Parser[Expression] = for {
+  def expression: Parser[Expression] = for {
     left <- lit | expInBraces
     _ <- skipWhitespace
     op <- conj | disj | impl | iff
@@ -47,9 +50,9 @@ object Parser {
     }
   }
 
-  private def expInBraces0: Parser[Expression] =
+  def expInBraces0: Parser[Expression] =
     char('(') ~> skipWhitespace ~> expression <~ skipWhitespace <~ char(')')
 
-  private def expInBraces: Parser[Expression] =
+  def expInBraces: Parser[Expression] =
     (neg ~> expInBraces0) -| Neg | expInBraces0
 }
