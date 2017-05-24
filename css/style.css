@@ -1,0 +1,59 @@
+input#expression {
+    display: block;
+    text-align: center;
+    margin: 15% 25% 0 25%;
+    font-size: 40px;
+    border-top: 0;
+    border-left: 0;
+    border-right: 0;
+    color: lightgray;
+    max-width: 50%;
+}
+
+input#expression:focus {
+    outline: none;
+}
+div.msg {
+   margin: 1% 25% 0 25%;
+}
+
+.msg p {
+    float: left;
+}
+.msg input[type=checkbox] {
+    float: left;
+}
+
+div.clear {
+    clear: left;
+}
+
+body {
+    font-family: Arial;
+}
+
+#output p.error {
+    clear: left;
+    color: darkred;
+    margin: 1% 25% 0 25%;
+}
+
+#output table {
+    font-size: larger;
+    text-align: center;
+    margin: 1% 25% 0 25%;
+}
+
+#output thead th {
+    background: #000;
+    color: white;
+    padding: 5px 10px 5px 10px;
+    font-weight: lighter;
+}
+
+#output tr:nth-child(even) {background: lightgray}
+tr:nth-child(odd) {background: #FFF}
+
+#output td {
+    padding: 5px;
+}
