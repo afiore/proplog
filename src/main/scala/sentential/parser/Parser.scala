@@ -16,10 +16,11 @@ object Parser {
     val disj = """\/"""
     val impl = "=>"
     val iff = "<=>"
-    val neg = '¬'
+    val neg1 = '¬'
+    val neg2 = '~'
   }
 
-  private def neg  = char(Tokens.neg)
+  private def neg  = char(Tokens.neg1) | char(Tokens.neg2)
   private def disj = string(Tokens.disj)
   private def conj = string(Tokens.conj)
   private def impl = string(Tokens.impl)

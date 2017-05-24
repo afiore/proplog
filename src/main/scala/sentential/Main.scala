@@ -5,7 +5,7 @@ import sentential.ui.AsHtml._
 import scala.scalajs.js.JSApp
 import scala.scalajs.js.annotation.JSExport
 import org.scalajs.dom
-import sentential.ui.{InputExpression, TruthTable, State}
+import sentential.ui.{TruthTable, State}
 
 import scalatags.JsDom.all._
 import dom.document
@@ -13,41 +13,41 @@ import dom.document
 object Main extends JSApp {
   @JSExport
   def main(): Unit = {
-    val expInput = InputExpression("").render
-    val output = div(id := "output").render
-    val checkbox = input(tpe := "checkbox").render
-    val msg = p("Evaluate intermediate expressions").render
-    val msgDiv = div(cls := "msg").render
+    document.addEventListener("DOMContentLoaded", { (e: dom.Event) =>
+      bindElements()
+    }, useCapture = false)
+  }
 
-    Seq(checkbox, msg, div(cls := "clear").render)
-      .foreach(msgDiv.appendChild)
+  private def bindElements(): Unit = {
+    val expInput = getInput("expression")
+    val checkbox = getInput("expand-exp")
+    val o = document.getElementById("output")
 
-    def renderTable(state: ui.State): Unit = {
+    def readState: State =
+      State(expInput.value, checkbox.checked)
+
+    def renderTable(state: ui.State) = {
       val expResult = Parser.parseExpression(state.rawExpression)
       val truthTableResult = expResult.flatMap(TruthTable(_, state.expandSubtree))
-
       val newNode = truthTableResult.fold[dom.Element]({ err =>
         p(cls := "error", err.msg).render
       }, _.render)
 
-      Option(output).foreach { o =>
+      while (o.hasChildNodes()) {
         if (o.hasChildNodes()) {
-          o.removeChild(o.firstElementChild)
+          o.removeChild(o.firstChild)
         }
-        o.appendChild(newNode)
       }
+      o.appendChild(newNode)
     }
-
-    def readState: State =
-      State(expInput.value, checkbox.checked)
 
     checkbox.onchange = (e: dom.Event) =>
       renderTable(readState)
 
     expInput.onkeyup = (_: dom.Event) =>
       renderTable(readState)
-
-    Seq(expInput, msgDiv, output)
-      .foreach(document.body.appendChild)
   }
+
+  private def getInput(id: String): dom.html.Input =
+    document.getElementById(id).asInstanceOf[dom.html.Input]
 }

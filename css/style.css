@@ -1,59 +1,23 @@
-input#expression {
-    display: block;
-    text-align: center;
-    margin: 15% 25% 0 25%;
-    font-size: 40px;
-    border-top: 0;
-    border-left: 0;
-    border-right: 0;
-    color: lightgray;
-    max-width: 50%;
+#main {
+  margin: 25%
 }
 
-input#expression:focus {
-    outline: none;
-}
-div.msg {
-   margin: 1% 25% 0 25%;
-}
-
-.msg p {
-    float: left;
-}
-.msg input[type=checkbox] {
-    float: left;
+#expression {
+  text-align: center;
+  font-size: xx-large;
+  height: 50px;
 }
 
-div.clear {
-    clear: left;
+label {
+ font-size: smaller;
+ font-weight: 200;
 }
 
-body {
-    font-family: Arial;
+#output {
+  margin-top: 5%;
 }
 
-#output p.error {
-    clear: left;
-    color: darkred;
-    margin: 1% 25% 0 25%;
+table th, table td {
+  text-align: center;
 }
 
-#output table {
-    font-size: larger;
-    text-align: center;
-    margin: 1% 25% 0 25%;
-}
-
-#output thead th {
-    background: #000;
-    color: white;
-    padding: 5px 10px 5px 10px;
-    font-weight: lighter;
-}
-
-#output tr:nth-child(even) {background: lightgray}
-tr:nth-child(odd) {background: #FFF}
-
-#output td {
-    padding: 5px;
-}
